@@ -16,7 +16,7 @@ export const login = async (email: string, password: string): Promise<string> =>
     })
 
     const data = await result.json();
-    console.log(data);
+    //console.log(data);
 
     return data.accessToken;
 };
@@ -32,7 +32,7 @@ export const register =  async(email: string, password: string) => {
     })
 
     const data = await result.json();
-    console.log(data);
+    //console.log(data);
     return data.accessToken;
 };
 
@@ -46,7 +46,7 @@ export const getUserDetails = async(token: string) => {
     })
 
     const data = await result.json();
-    console.log(data);
+    //console.log(data);
     return data;
 }
 
@@ -60,7 +60,7 @@ export const listGames = async(token: string) => {
     })
 
     const data = await result.json();
-    console.log(data);
+    //console.log(data);
     return data;
 }
 
@@ -74,7 +74,8 @@ export const createGame = async(token: string) => {
     })
 
     const data = await result.json();
-    console.log(data);
+    const text = await result.text();
+    //console.log(text);
     return data;
 }
 
@@ -88,7 +89,7 @@ export const getGameDetails = async(token: string, gameId: string) => {
     })
 
     const data = await result.json();
-    console.log(data);
+    //console.log(data);
     return data;
 }
 
@@ -103,7 +104,7 @@ export const joinGame = async(token: string, gameId: string) => {
     })
 
     const data = await result.json();
-    console.log(data);
+    //console.log(data);
     return data;
 }
 
@@ -117,7 +118,7 @@ export const getGamebyid = async(token: string, gameId: string) => {
     })
 
     const data = await result.json();
-    console.log(data);
+    //console.log(data);
     return data;
 }
 
@@ -142,7 +143,7 @@ export const sendMapconfig = async(token: string, gameId: string, mapconfig: any
     })
 
     const data = await result.json();
-    console.log(data);
+    //console.log(data);
     return data;
 }
 
@@ -157,6 +158,6 @@ export const strike = async(token: string, gameId: string, x: string, y: number)
     })
 
     const data = await result.json();
-    console.log(data);
+    //console.log(data);
     return data;
 }

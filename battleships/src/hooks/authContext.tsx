@@ -30,15 +30,31 @@ export const AuthContextProvider: React.FC<{children: ReactNode}> = ({ children 
     const [email, setEmail] = useState<string>('');
     const [id, setId] = useState<string>('');
     
+
+    const tokenExpired = (token: string): boolean => {
+        if(!token) return true;
+        const [, payload] = token.split('.');
+        const data = JSON.parse(atob(payload));
+        const exp = data.exp * 1000;
+        return Date.now() >= exp;
+    }
+
     useEffect(() => {
         setIsLoading(true);
-        AsyncStorage.getItem('token')
-        .then(value => {
-            if (value) {
-                setToken(value);
+        AsyncStorage.getItem('token').then(value => {
+            if (value){
+                if (tokenExpired(value)){
+                    AsyncStorage.removeItem('token');
+                    value = '';
+                } else {
+                    setToken(value);
+                    getUserDetails(value).then((user) => {
+                        setEmail(user.user.email);
+                        setId(user.user.id);
+                    });
+                }
             }
-        })
-        .finally(() => setIsLoading(false));
+        }).finally(() => setIsLoading(false));
     }, []);
     
     const handlelogin = async (email: string, password: string) => {
@@ -46,7 +62,7 @@ export const AuthContextProvider: React.FC<{children: ReactNode}> = ({ children 
             const result = await login(email, password);
             console.log('login: ', result);
             setToken(result);
-            await AsyncStorage.setItem('token', result);
+            AsyncStorage.setItem('token', result);
 
             getUserDetails(result).then((user) => {
                 setEmail(user.user.email);
@@ -54,6 +70,7 @@ export const AuthContextProvider: React.FC<{children: ReactNode}> = ({ children 
             });
         } catch (error) {
             console.log(error);
+            alert('Invalid email or password');
         }
     };
     const handleregister = async (email: string, password: string) => {
@@ -61,7 +78,7 @@ export const AuthContextProvider: React.FC<{children: ReactNode}> = ({ children 
             const result = await register(email, password);
             console.log('register: ', result);
             setToken(result);
-            await AsyncStorage.setItem('token', result);
+            AsyncStorage.setItem('token', result);
 
             getUserDetails(result).then((user) => {
                 setEmail(user.user.email);
@@ -74,8 +91,9 @@ export const AuthContextProvider: React.FC<{children: ReactNode}> = ({ children 
 
     const handlelogout = async () => {
         setToken('');
+        setEmail('');
+        setId('');
         await AsyncStorage.removeItem('token');
-        Alert.alert('Logged out');
     };
 
     return (

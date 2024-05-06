@@ -46,11 +46,11 @@ interface Game {
 
 interface IGameContext {
     game: Game | null;
-    getGame: (id: string) => Promise<void>;
+    getGameDetails: (id: string) => Promise<void>;
 }
 
 const Context = createContext<IGameContext>({
-    getGame: () => Promise.resolve(),
+    getGameDetails: () => Promise.resolve(),
     game: null
 });
 
@@ -60,7 +60,7 @@ export const GameContext: React.FC<{children: React.ReactNode}> = ({children}) =
 
     const handleloadGame = async (id: string) => {
         try {
-            const game = await getGamebyid(auth.token, id);
+            const game = await getGameDetails(auth.token, id);
             setGame(game);
         }
         catch (error) {
@@ -70,8 +70,8 @@ export const GameContext: React.FC<{children: React.ReactNode}> = ({children}) =
 
     return (
         <Context.Provider value={{
-            game,
-            getGame: handleloadGame
+            getGameDetails: handleloadGame,
+            game
         }}>
             {children}
         </Context.Provider>
