@@ -1,16 +1,12 @@
-import Register from "../../component/Register";
-import { register } from "../../api/Api";
-import { useNavigation } from "@react-navigation/native"
-import { AuthRouteNames } from "../../router/route-names"
-import { useAuth } from "../../hooks/authContext";
+import { register } from "../../api/Api"
+import Register from "../../component/Register"
+import { useAuth } from "../../hooks/authContext"
 
 const RegisterScreen = () => {
-    const navigation = useNavigation<any>();
-    const handlegotoLogin= () => {
-        navigation.navigate(AuthRouteNames.LOGIN)
-    }
-    const auth = useAuth();
-    return <Register onSubmit={auth.register} gotoLogin={handlegotoLogin}/>
+    const auth = useAuth()
+    return <Register onSubmit={auth.register} gotoLogin={function (): void {
+        throw new Error("Function not implemented.")
+    } } />
 }
 
-export default RegisterScreen;
+export default RegisterScreen

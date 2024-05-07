@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState } from "react";
 import { useAuth } from "./authContext";
-import { getGameDetails, getGamebyid } from "../api/Api";
+import { getDetailsOfGame } from "../api/Api";
 
 enum GameStatus {
     CREATED = "CREATED",
@@ -60,7 +60,7 @@ export const GameContext: React.FC<{children: React.ReactNode}> = ({children}) =
 
     const handleloadGame = async (id: string) => {
         try {
-            const game = await getGameDetails(auth.token, id);
+            const game = await getDetailsOfGame(auth.token, id);
             setGame(game);
         }
         catch (error) {

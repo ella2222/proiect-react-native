@@ -44,7 +44,7 @@ export const GameListItems = () => {
         <View style={styles.item}>
             <Text>Status: {item.status}</Text>
             <Text>Opponent: {item.otherPlayerEmail}</Text>
-            <Button title="Join Game" onPress={() => handleJoinGame(item.id)} />
+            <Button title="Join Game" onPress={() => handleJoinGame} />
         </View>
     );
 

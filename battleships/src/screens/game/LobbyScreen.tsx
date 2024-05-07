@@ -43,27 +43,33 @@ export const LobbyScreen = () => {
             navigation.navigate(GameRouteNames.TABLE);
         } catch (error) {
             console.error('Failed to create game:', error);
-            Alert.alert('Error', 'Failed to create game.');
         }
     };
+
+    const fetchGames = async () => {
+        try {
+            const gamesList = await listGames(token);
+
+        } catch (error) {
+            console.error('Failed to fetch games:', error);
+            Alert.alert('Error', 'Failed to load games.');
+        }
+    };
+
+    useEffect(() => {
+        fetchGames();
+    }, []);
 
     const handleViewProfile = () => {
         navigation.navigate(GameRouteNames.USER_DETAILS);
     };
 
-    useEffect(() => {
-        if (error) {
-            Alert.alert('Error', error);
-        }
-    }, [error]);
-
-
     return (
         <Container>
-            <GameListItems />
             <ActionButton onPress={handleCreateGame}>
-                <ButtonText>Create New Game</ButtonText>
+                <ButtonText>Create Game</ButtonText>
             </ActionButton>
+            <GameListItems />
             <ActionButton onPress={handleViewProfile}>
                 <ButtonText>View Profile</ButtonText>
             </ActionButton>
