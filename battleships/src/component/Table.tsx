@@ -12,91 +12,43 @@ export interface ICell {
     y: number;
 }
 
-const getBackgroundColor = (cell: string) => {
-    switch (cell) {
-        case 'X':
-            return '#FF4136';
-        case 'm':
-            return '#7FDBFF';
-        case 'O':
-            return '#2ECC40';
-        default:
-            return '#ffffff';
-    }
-};
-
-const Cell = styled(TouchableOpacity)<{ cellType: string }>`
-    width: 23px;
-    height: 23px;
+const Cell = styled.TouchableOpacity<ICell>`
+    width: 50px;
+    height: 50px;
+    border: 1px solid black;
+    display: flex;
     justify-content: center;
     align-items: center;
-    border-radius: 3.5px;
-    background-color: ${props => getBackgroundColor(props.cellType)};
-    border: 1px solid #ddd;
-`;
+`
 
 const Row = styled.View`
+    display: flex;
     flex-direction: row;
-`;
+`
 
-const Container = styled.View`
+const Tablecont = styled.View`
+    display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: center;
-`;
+`
 
-const Header = styled.View`
-    flex-direction: row;
-    padding-right: 23px;
-`;
-
-const Label = styled(Text)`
-    width: 23px;
-    height: 23px;
-    line-height: 23px;
-    text-align: center;
-    font-size: 9px;
-    font-family: Arial;
-`;
-
-const StyledText = styled(Text)`
-    color: #333;
-    font-size: 13px;
-    font-family: Arial;
-`;
-
-const Table: React.FC<ITable> = React.memo(({ state, onCellClick }) => {
-    const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
-
+const Table: React.FC<ITable> = ({state, onCellClick}) => {
     return (
-        <Container>
-            <Header>
-                <Label> </Label>
-                {alphabet.slice(0, state[0].length).map((letter, index) => (
-                    <Label key={index}>{letter}</Label>
-                ))}
-            </Header>
-            {state.map((row, rowIndex) => (
-                <Row key={rowIndex}>
-                    <Label>{rowIndex + 1}</Label>
-                    {row.map((cell, cellIndex) => (
-                        <Cell
-                            cellType={cell}
-                            onPress={() => onCellClick && onCellClick({ x: alphabet[cellIndex], y: rowIndex + 1 })}
-                            key={cellIndex}>
-                            <StyledText>
-                                {cell}
-                            </StyledText>
+        <Tablecont>
+            {state.map((row, i) => (
+                <Row key={i}>
+                    {row.map((cell, j) => (
+                        <Cell onPress={() => {
+                            if (onCellClick) {
+                                onCellClick({x: String.fromCharCode(65 + j), y: i + 1});
+                            }
+                        }} key = {j} x={String.fromCharCode(65 + j)} y={i }>
+                            <Text>{cell}</Text>
                         </Cell>
                     ))}
-                    <Label>{rowIndex + 1}</Label>
                 </Row>
             ))}
-            <Header>
-                <Label> </Label>
-            </Header>
-        </Container>
-    );
-});
+        </Tablecont>
+    )
+}
 
 export default Table;

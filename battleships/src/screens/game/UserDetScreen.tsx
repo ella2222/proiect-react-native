@@ -78,6 +78,9 @@ const UserDetailsScreen = () => {
             <DetailsBox>
                 <InfoText>Email: {email}</InfoText>
                 <InfoText>User ID: {id}</InfoText>
+                <InfoText>Games Won: {gamesWon}</InfoText>
+                <InfoText>Games Lost: {gamesLost}</InfoText>
+                <InfoText>Total Games: {totalGames}</InfoText>
                 <LogoutButton onPress={handleLogout}>
                     <ButtonText>Logout</ButtonText>
                 </LogoutButton>

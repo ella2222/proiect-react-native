@@ -32,11 +32,12 @@ export const AuthContextProvider: React.FC<{children: ReactNode}> = ({ children 
     
 
     const tokenExpired = (token: string): boolean => {
-        if(!token) return true;
-        const [, payload] = token.split('.');
-        const data = JSON.parse(atob(payload));
-        const exp = data.exp * 1000;
-        return Date.now() >= exp;
+        if(token){
+            const [, payload] = token.split('.');
+            const data = JSON.parse(atob(payload));
+            return data.exp * 1000 < Date.now();
+        }
+        return true;
     }
 
     useEffect(() => {
@@ -60,7 +61,6 @@ export const AuthContextProvider: React.FC<{children: ReactNode}> = ({ children 
     const handlelogin = async (email: string, password: string) => {
         try {
             const result = await login(email, password);
-            console.log('login: ', result);
             setToken(result);
             AsyncStorage.setItem('token', result);
 
@@ -76,6 +76,7 @@ export const AuthContextProvider: React.FC<{children: ReactNode}> = ({ children 
     const handleregister = async (email: string, password: string) => {
         try {
             const result = await register(email, password);
+            if (!result) throw new Error('Invalid register response');
             console.log('register: ', result);
             setToken(result);
             AsyncStorage.setItem('token', result);
@@ -84,8 +85,10 @@ export const AuthContextProvider: React.FC<{children: ReactNode}> = ({ children 
                 setEmail(user.user.email);
                 setId(user.user.id);
             });
+
         } catch (error) {
             console.log(error);
+            Alert.alert('Error', 'Failed to register' + error); 
         }
     };
 

@@ -10,7 +10,7 @@ const GameStack = createNativeStackNavigator();
 const gameroutes = (
     <GameStack.Navigator>
         <GameStack.Screen name={GameRouteNames.LOBBY} component={LobbyScreen} options={{
-            header : () => null
+            headerTitle: (props) => <Text {...props} style={{fontSize: 20}}>Lobby</Text>
         }}/>
         <GameStack.Screen name={GameRouteNames.TABLE} component={TableScreen} options={{
             headerTitle: (props) => <Text {...props}>Table</Text>

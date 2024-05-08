@@ -1,7 +1,8 @@
 const baseUrl = 'http://163.172.177.98:8081'
+
 const baseHeaders = {
     'Content-Type': 'application/json',
-    'Accept': 'application/json'
+    'accept': 'application/json'
 }
 
 export const login = async (email: string, password: string): Promise<string> => {
@@ -30,6 +31,19 @@ export const register = async (email: string, password: string) => {
     return data.accessToken;
 };
 
+export const getUserDetails = async (token: string) => {
+    const result = await fetch(`${baseUrl}/user/details/me`, {
+        method: 'GET',
+        headers: {
+            ...baseHeaders,
+            'Authorization': `Bearer ${token}`
+        }
+    })
+
+    const data = await result.json();
+    return data;
+};
+
 export const listGames = async (token: string) => {
     const result = await fetch(`${baseUrl}/game`, {
         method: 'GET',
@@ -39,13 +53,8 @@ export const listGames = async (token: string) => {
         }
     });
 
-    if (!result.ok) {
-        throw new Error('Failed to fetch games');
-    }
-
     const data = await result.json();
-    // console.log(data);
-    return data["games"];
+    return data;
 };
 
 
@@ -59,7 +68,6 @@ export const createGame = async (token: string) => {
     })
 
     const data = await result.json();
-    // console.log(data);
     return data;
 }
 
@@ -86,29 +94,11 @@ export const joinGame = async (token: string, gameId: string) => {
         }
     });
 
-    if (!result.ok) {
-        const errorData = await result.json();
-        throw new Error(errorData.message || "Failed to join the game.");
-    }
 
     const data = await result.json();
-    // console.log(data);
     return data;
 }
 
-export const getUserDetails = async (token: string) => {
-    const result = await fetch(`${baseUrl}/user/details/me`, {
-        method: 'GET',
-        headers: {
-            ...baseHeaders,
-            'Authorization': `Bearer ${token}`
-        }
-    })
-
-    const data = await result.json();
-    // console.log(data);
-    return data;
-}
 
 export const sendMapConfiguration = async (token: string, gameId: string, mapConfiguration: any) => {
     const ships = mapConfiguration.map((ship: any) => {
@@ -130,11 +120,10 @@ export const sendMapConfiguration = async (token: string, gameId: string, mapCon
     });
 
     const data = await result.json();
-    // console.log(data);
     return data;
 }
 
-export const sendStrike = async (token: string, gameId: string, x: string, y: number) => {
+export const strike = async (token: string, gameId: string, x: string, y: number) => {
     const result = await fetch(`${baseUrl}/game/strike/${gameId}`, {
         method: 'POST',
         headers: {
@@ -145,10 +134,5 @@ export const sendStrike = async (token: string, gameId: string, x: string, y: nu
     });
 
     const data = await result.json();
-    if (result.ok) {
-        console.log(data);
-        return data;
-    } else {
-        throw new Error(data.message);
-    }
+    return data;
 }

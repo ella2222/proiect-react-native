@@ -1,10 +1,10 @@
 // src/screens/game/LobbyScreen.tsx
-import React, {useEffect} from 'react';
+import React, {useCallback, useEffect} from 'react';
 import styled from 'styled-components/native';
 import { useAuth } from '../../hooks/authContext';
 import GameListItems from '../../component/GameListItems';
-import { createGame, listGames } from '../../api/Api';
-import { useNavigation } from '@react-navigation/native';
+import { createGame, getDetailsOfGame, joinGame, listGames } from '../../api/Api';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { GameRouteNames } from '../../router/route-names';
 import { Alert } from 'react-native';
 
@@ -31,14 +31,42 @@ const ButtonText = styled.Text`
     font-size: 16px;
 `;
 
+const GameList = styled.ScrollView`
+    flex: 1;
+    margin-bottom: 50px;
+`;
+
 export const LobbyScreen = () => {
     const { token } = useAuth();
     const navigation = useNavigation<any>();
-    const [error, setError] = React.useState<string | null>(null);
+    const [games, setGames] = React.useState<any[]>([]);
+    const auth = useAuth();
 
+    const fetchGames = useCallback( async() => {
+        try {
+            const gamesList = await listGames(token);
+            setGames(gamesList.games);
+
+        } catch (error) {
+            console.error('Failed to fetch games:', error);
+            Alert.alert('Error', 'Failed to load games.');
+        }
+    }, [token]);
+
+    useEffect(() => {
+        fetchGames();
+    }, [fetchGames]);
+
+    useFocusEffect(
+        React.useCallback(() => {
+            fetchGames();
+        }, [fetchGames])
+    );
+    
     const handleCreateGame = async () => {
         try {
             const game = await createGame(token);
+            await fetchGames();
             console.log('Game created', game);
             navigation.navigate(GameRouteNames.TABLE);
         } catch (error) {
@@ -46,30 +74,41 @@ export const LobbyScreen = () => {
         }
     };
 
-    const fetchGames = async () => {
-        try {
-            const gamesList = await listGames(token);
-
-        } catch (error) {
-            console.error('Failed to fetch games:', error);
-            Alert.alert('Error', 'Failed to load games.');
-        }
-    };
-
-    useEffect(() => {
-        fetchGames();
-    }, []);
+    
 
     const handleViewProfile = () => {
         navigation.navigate(GameRouteNames.USER_DETAILS);
     };
+
+    const handleJoinGame = async (gameId: string) => {
+        try {
+            await joinGame(token, gameId);
+            navigation.navigate(GameRouteNames.TABLE, {gameId});
+        } catch (error) {
+            console.error('Failed to join game:', error);
+        }
+    }
 
     return (
         <Container>
             <ActionButton onPress={handleCreateGame}>
                 <ButtonText>Create Game</ButtonText>
             </ActionButton>
-            <GameListItems />
+
+            <GameList>
+                {games.map(game => (
+                    <GameListItems
+                        key={game.id}
+                        id={game.id}
+                        status={game.status}
+                        otherPlayerEmail={game.player1.email}
+                        onJoin={() => handleJoinGame(game.id)}
+                        onPress={() => {navigation.navigate(GameRouteNames.TABLE, {gameId: game.id}),
+                                getDetailsOfGame(auth.token, game.id)}}
+                    />
+                ))}
+            </GameList>
+
             <ActionButton onPress={handleViewProfile}>
                 <ButtonText>View Profile</ButtonText>
             </ActionButton>
