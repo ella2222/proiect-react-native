@@ -75,16 +75,9 @@ export const AuthContextProvider: React.FC<{children: ReactNode}> = ({ children 
     };
     const handleregister = async (email: string, password: string) => {
         try {
-            const result = await register(email, password);
-            if (!result) throw new Error('Invalid register response');
-            console.log('register: ', result);
-            setToken(result);
-            AsyncStorage.setItem('token', result);
-
-            getUserDetails(result).then((user) => {
-                setEmail(user.user.email);
-                setId(user.user.id);
-            });
+            
+            await register(email, password);
+            await handlelogin(email, password);
 
         } catch (error) {
             console.log(error);

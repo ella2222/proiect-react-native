@@ -100,7 +100,7 @@ export const joinGame = async (token: string, gameId: string) => {
 }
 
 
-export const sendMapConfiguration = async (token: string, gameId: string, mapConfiguration: any) => {
+export const sendMapConfig = async (token: string, gameId: string, mapConfiguration: any) => {
     const ships = mapConfiguration.map((ship: any) => {
         return {
             x: ship.x,

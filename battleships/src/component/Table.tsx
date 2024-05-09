@@ -1,6 +1,6 @@
 import React from 'react';
 import styled from 'styled-components/native';
-import { Text, TouchableOpacity} from 'react-native';
+import { Text, TouchableOpacity } from 'react-native';
 
 interface ITable {
     state: string[][];
@@ -12,43 +12,74 @@ export interface ICell {
     y: number;
 }
 
-const Cell = styled.TouchableOpacity<ICell>`
-    width: 50px;
-    height: 50px;
+const Cell = styled(TouchableOpacity)`
+    width: 35px;
+    height: 35px;
     border: 1px solid black;
-    display: flex;
     justify-content: center;
     align-items: center;
-`
+    background-color: #ffffff;
+`;
 
 const Row = styled.View`
-    display: flex;
     flex-direction: row;
-`
+`;
 
-const Tablecont = styled.View`
-    display: flex;
-    flex-direction: column;
-`
+const TableContainer = styled.View`
+    align-items: center;
+    margin: 10px;
+`;
 
-const Table: React.FC<ITable> = ({state, onCellClick}) => {
+const HeaderRow = styled(Row)`
+    margin-bottom: 5px;
+`;
+
+const HeaderCell = styled.View`
+    width: 35px;
+    height: 35px;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+`;
+
+const HeaderText = styled.Text`
+    font-weight: bold;
+`;
+
+const Table: React.FC<ITable> = ({ state, onCellClick }) => {
+    const headerColumns = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
+
     return (
-        <Tablecont>
-            {state.map((row, i) => (
-                <Row key={i}>
-                    {row.map((cell, j) => (
-                        <Cell onPress={() => {
-                            if (onCellClick) {
-                                onCellClick({x: String.fromCharCode(65 + j), y: i + 1});
-                            }
-                        }} key = {j} x={String.fromCharCode(65 + j)} y={i }>
+        <TableContainer>
+            <HeaderRow>
+                <HeaderCell />
+                {headerColumns.map((column, index) => (
+                    <HeaderCell key={index}>
+                        <HeaderText>{column}</HeaderText>
+                    </HeaderCell>
+                ))}
+            </HeaderRow>
+            {state.map((row, rowIndex) => (
+                <Row key={rowIndex}>
+                    <HeaderCell>
+                        <HeaderText>{rowIndex + 1}</HeaderText>
+                    </HeaderCell>
+                    {row.map((cell, columnIndex) => (
+                        <Cell
+                            key={columnIndex}
+                            onPress={() => {
+                                if (onCellClick) {
+                                    onCellClick({ x: String.fromCharCode(65 + columnIndex), y: rowIndex + 1 });
+                                }
+                            }}
+                        >
                             <Text>{cell}</Text>
                         </Cell>
                     ))}
                 </Row>
             ))}
-        </Tablecont>
-    )
-}
+        </TableContainer>
+    );
+};
 
 export default Table;

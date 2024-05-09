@@ -1,7 +1,10 @@
 // src/component/GameListItems.tsx
+import { useNavigation } from '@react-navigation/native';
 import React from 'react';
 import { View, Text, Button, StyleSheet, TouchableOpacity } from 'react-native';
 import styled from 'styled-components/native';
+import { GameRouteNames } from '../router/route-names';
+import { useGameContext } from '../hooks/gameContext';
 
 const Container = styled.TouchableOpacity`
     flex-direction: row;
@@ -58,9 +61,8 @@ const getStatusColor = (status: string) => {
 };
 
 const GameListItems: React.FC<IGameListItems> = ({ id, status, otherPlayerEmail, onPress }) => {
-    const onJoin = () => {
-        console.log('Joining game:', id);
-    };
+    const navigation = useNavigation<any>();
+    const gameContext = useGameContext();
 
     return (
         <Container onPress={onPress}>
@@ -70,11 +72,6 @@ const GameListItems: React.FC<IGameListItems> = ({ id, status, otherPlayerEmail,
                 <Text style={styles.text}>Opponent: {otherPlayerEmail}</Text>
                 <Text style={styles.text}>Status: {status}</Text>
             </TextWrapper>
-            {status.toLowerCase() === 'created' && (
-                <TouchableOpacity onPress={onJoin} style={styles.joinButton}>
-                    <Text style={styles.joinButtonText}>Join</Text>
-                </TouchableOpacity>
-            )}
         </Container>
     );
 };

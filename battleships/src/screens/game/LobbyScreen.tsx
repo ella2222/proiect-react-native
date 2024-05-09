@@ -74,7 +74,6 @@ export const LobbyScreen = () => {
         }
     };
 
-    
 
     const handleViewProfile = () => {
         navigation.navigate(GameRouteNames.USER_DETAILS);
@@ -82,7 +81,6 @@ export const LobbyScreen = () => {
 
     const handleJoinGame = async (gameId: string) => {
         try {
-            await joinGame(token, gameId);
             navigation.navigate(GameRouteNames.TABLE, {gameId});
         } catch (error) {
             console.error('Failed to join game:', error);
