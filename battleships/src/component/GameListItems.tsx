@@ -47,7 +47,7 @@ const statusColors = {
 
 const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
-        case 'mapconfig':
+        case 'map_config':
             return statusColors.mapconfig;
         case 'finished':
             return statusColors.finished;

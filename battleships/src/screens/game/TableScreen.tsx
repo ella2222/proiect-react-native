@@ -1,7 +1,7 @@
 // src/screens/game/TableScreen.tsx
 import React, { useEffect, useState } from "react";
 import styled from "styled-components/native";
-import { Alert, ScrollView, Text, TouchableOpacity, ActivityIndicator, View } from "react-native";
+import { Alert, ScrollView, Text, TouchableOpacity, ActivityIndicator, View, StyleSheet } from "react-native";
 import { useRoute } from "@react-navigation/native";
 import { GameContext, useGameContext } from "../../hooks/gameContext";
 import { useAuth } from "../../hooks/authContext";
@@ -12,42 +12,10 @@ import { get } from "react-native/Libraries/TurboModule/TurboModuleRegistry";
 
 const Container = styled.View`
     flex: 1;
-    padding: 20px;
-    background-color: #f9f9f9;
-`;
-
-const ScrollViewContainer = styled(ScrollView)`
-    flex: 1;
-    width: 100%;  
-    padding-top: 0px;
-    padding-bottom: 0px;
-`;
-
-const TableContainer = styled.View`
-    flex-direction: row;
-    justify-content: space-between;
-    margin-bottom: 20px;
-`;
-
-const ShipConfig = styled.TouchableOpacity`
-    width: 80%;
     justify-content: center;
     align-items: center;
-    background-color: #007bff;
-    padding: 15px;
-    border-radius: 5px;
-    margin-horizontal: 20px;
-    margin-bottom: 20px;
-`;
-
-const ReplayButton = styled.TouchableOpacity`
-    background-color: #007bff;
-    padding: 15px;
-    border-radius: 5px;
-    align-self: center;
-    min-width: 40%;
-    margin-horizontal: 20px;
-    margin-bottom: 20px;
+    padding: 20px;
+    background-color: #f9f9f9;
 `;
 
 const StatusText = styled(Text)`
@@ -57,20 +25,13 @@ const StatusText = styled(Text)`
     color: #333;
 `;
 
-const GameArea = styled.View`
-    flex: 1;
-    justify-content: center;
-    align-items: center;
-`;
-
-const Button = styled.TouchableOpacity`
+const Button = styled(TouchableOpacity)`
     background-color: #007bff;
     padding: 15px;
     border-radius: 5px;
     align-self: center;
     min-width: 40%;
-    margin-horizontal: 20px;
-    margin-bottom: 20px;
+    margin-top: 20px;
 `;
 
 const ButtonText = styled(Text)`
@@ -111,9 +72,11 @@ const TableScreen = () => {
 
     useEffect(() => {
         const fetchGame = async () => {
-            gameContext.getGameDetails(route.params.gameId);
+            await gameContext.getGameDetails(route.params.gameId);
         };
         fetchGame();
+        const intervalId = setInterval(fetchGame, 1000); 
+        return () => clearInterval(intervalId); 
     }, [route.params?.gameId]);
 
     useEffect(() =>{
@@ -263,11 +226,11 @@ const TableScreen = () => {
     const getWinner = () => {
         if(gameContext.game?.status === 'FINISHED'){
             const lastmove = gameContext.game?.moves[gameContext.game?.moves.length - 1].playerId;
-            if(lastmove === auth.id){
-                return 'You won!';
+            if(lastmove === gameContext.game?.player1Id){
+                return gameContext.game?.player1.email;
             }
             else {
-                return 'You lost!';
+                return gameContext.game?.player2.email;
             }
         }
         return '';
@@ -318,47 +281,117 @@ const TableScreen = () => {
         replaygame();
     }
 
-    return (
-        <Container>
-            {gameContext.game ? (
-                <GameArea>
-                    {gameContext.game.status === 'FINISHED' && (
-                        <>
-                            <StatusText>Game Finished</StatusText>
-                            <ReplayButton onPress={handleReplay}>
-                                <ButtonText>Replay Game</ButtonText>
-                            </ReplayButton>
-                        </>
-                    )}
-                    {gameContext.game.status === 'ACTIVE' && (
-                        <>
-                            <StatusText>Game is in progress...</StatusText>
-                            // Componente pentru vizualizarea jocului
-                        </>
-                    )}
-                    {gameContext.game.status === 'CREATED' && gameContext.game.player1Id !== auth.id && (
-                        <Button onPress={handleJoinGame}>
-                            <ButtonText>Join Game</ButtonText>
-                        </Button>
-                    )}
-                    {gameContext.game.status === 'CREATED' && gameContext.game.player1Id === auth.id && (
-                        <StatusText>Waiting for opponent...</StatusText>
-                    )}
-                    {gameContext.game.status === 'MAP_CONFIG' && (
-                        <>
-                            <ShipMap shipId={0} length={2} onShipConfig={placeShips} />
-                            <Button onPress={handlesetmapconfig}>
-                                <ButtonText>Start Game</ButtonText>
-                            </Button>
-                        </>
-                    )}
-                    </GameArea>
-            ) : (
+    if(!gameContext.game){
+        return (
+            <Container>
                 <ActivityIndicator size="large" color="#0000ff" />
+                <StatusText>Loading game details...</StatusText>
+            </Container>
+        )
+    }
+
+    return (
+        <ScrollView style={styles.container}>
+            {gameContext.game.status === 'CREATED' && gameContext.game.player1Id === auth.id && (
+                <>
+                    <ActivityIndicator size="large" color="#0000ff" />
+                    <StatusText>Waiting for an opponent...</StatusText>
+                </>
             )}
-        </Container>
+            {gameContext.game.status === 'CREATED' && gameContext.game.player1Id !== auth.id && (
+                <Button onPress={handleJoinGame}>
+                    <ButtonText>Join Game</ButtonText>
+                </Button>
+            )}
+
+            {gameContext.game.status === 'FINISHED' && (
+                
+                <>
+                    <Text style={styles.winner}>Winner: {getWinner()}</Text>
+                    <Button onPress={handleReplay} >
+                        <ButtonText>Replay</ButtonText>
+                    </Button>
+                    <Text style={styles.header}>{gameContext.game.player1.email} vs {gameContext.game.player2?.email}</Text>
+                    <View style={styles.boardContainer}>
+                        <Text style={styles.boardLabel}>{gameContext.game.player1.email}'s Board:</Text>
+                        <View style={styles.board}>
+                            <Table state={playerConfig} />
+                        </View>
+                    </View>
+                    <View style={styles.boardContainer}>
+                        <Text style={styles.boardLabel}>{gameContext.game.player2?.email}'s Board:</Text>
+                        <View style={styles.board}>
+                            <Table state={opponentConfig} />
+                        </View>
+                    </View>
+                </>
+            )}
+            {gameContext.game.status === 'ACTIVE' && auth.id !== gameContext.game.player1Id && auth.id !== gameContext.game.player2Id && (
+                <>
+                <Text style={styles.header}>{gameContext.game.player1.email} vs {gameContext.game.player2?.email}</Text>
+                    <View style={styles.boardContainer}>
+                        <Text style={styles.boardLabel}>{gameContext.game.player1.email}'s Board:</Text>
+                        <View style={styles.board}>
+                            <Table state={playerConfig} />
+                        </View>
+                    </View>
+                    <View style={styles.boardContainer}>
+                        <Text style={styles.boardLabel}>{gameContext.game.player2?.email}'s Board:</Text>
+                        <View style={styles.board}>
+                            <Table state={opponentConfig} />
+                        </View>
+                    </View>
+                </>
+            )}
+        </ScrollView>
     );
 };
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        padding: 20,
+        backgroundColor: '#f0f0f0',
+    },
+    header: {
+        fontSize: 24,
+        fontWeight: 'bold',
+        marginBottom: 20,
+        textAlign: 'center',
+    },
+    boardContainer: {
+        marginBottom: 20,
+        width: '100%',
+        alignItems: 'center',
+    },
+    boardLabel: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: '#333',
+    },
+    board: {
+        padding: 10,
+        width: '100%',
+        alignItems: 'center',
+    },
+    winner: {
+        fontSize: 18,
+        color: 'green',
+        marginBottom: 20,
+        textAlign: 'center',
+    },
+    watching: {
+        fontSize: 16,
+        color: 'blue',
+        textAlign: 'center',
+    },
+    loadingText: {
+        marginTop: 20,
+        fontSize: 18,
+        color: '#333',
+        textAlign: 'center',
+    }
+});
 
 export default () => (
     <GameContext>
