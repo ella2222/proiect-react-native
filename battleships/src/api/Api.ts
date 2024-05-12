@@ -83,7 +83,6 @@ export const getDetailsOfGame = async (token: string, gameId: string) => {
     })
 
     const data = await result.json();
-    console.log(data);
     return data;
 }
 

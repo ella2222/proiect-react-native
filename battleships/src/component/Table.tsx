@@ -1,6 +1,6 @@
 import React from 'react';
 import styled from 'styled-components/native';
-import { Text, TouchableOpacity } from 'react-native';
+import { Text, TouchableOpacity, View, StyleSheet } from 'react-native';
 
 interface ITable {
     state: string[][];
@@ -21,11 +21,11 @@ const Cell = styled(TouchableOpacity)`
     background-color: #ffffff;
 `;
 
-const Row = styled.View`
+const Row = styled(View)`
     flex-direction: row;
 `;
 
-const TableContainer = styled.View`
+const TableContainer = styled(View)`
     align-items: center;
     margin: 10px;
 `;
@@ -34,7 +34,7 @@ const HeaderRow = styled(Row)`
     margin-bottom: 5px;
 `;
 
-const HeaderCell = styled.View`
+const HeaderCell = styled(View)`
     width: 35px;
     height: 35px;
     justify-content: center;
@@ -42,7 +42,7 @@ const HeaderCell = styled.View`
     font-weight: bold;
 `;
 
-const HeaderText = styled.Text`
+const HeaderText = styled(Text)`
     font-weight: bold;
 `;
 
@@ -72,6 +72,7 @@ const Table: React.FC<ITable> = ({ state, onCellClick }) => {
                                     onCellClick({ x: String.fromCharCode(65 + columnIndex), y: rowIndex + 1 });
                                 }
                             }}
+                            style={cell === 'S' ? styles.shipCell : styles.normalCell}
                         >
                             <Text>{cell}</Text>
                         </Cell>
@@ -81,5 +82,32 @@ const Table: React.FC<ITable> = ({ state, onCellClick }) => {
         </TableContainer>
     );
 };
+
+const styles = StyleSheet.create({
+    table: {
+        alignItems: 'center',
+        margin: 10,
+    },
+    row: {
+        flexDirection: 'row',
+    },
+    normalCell: {
+        width: 35,
+        height: 35,
+        borderWidth: 1,
+        borderColor: '#ccc',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    shipCell: {
+        width: 35,
+        height: 35,
+        borderWidth: 1,
+        borderColor: '#ccc',
+        backgroundColor: 'blue',  // fundal albastru pentru nave
+        justifyContent: 'center',
+        alignItems: 'center',
+    }
+});
 
 export default Table;
