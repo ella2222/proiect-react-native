@@ -1,3 +1,5 @@
+import { Alert } from "react-native";
+
 const baseUrl = 'http://163.172.177.98:8081'
 
 const baseHeaders = {
@@ -13,10 +15,15 @@ export const login = async (email: string, password: string): Promise<string> =>
         },
         body: JSON.stringify({ email, password })
     })
+    
+    if (result.status === 403) {
+        Alert.alert('Invalid credentials')
+    }
 
     const data = await result.json();
     console.log(data);
     return data.accessToken;
+
 };
 
 export const register = async (email: string, password: string) => {
@@ -27,6 +34,10 @@ export const register = async (email: string, password: string) => {
         },
         body: JSON.stringify({ email, password })
     })
+
+    if (result.status === 403) {
+        Alert.alert('Account already exists')
+    }
 
     const data = await result.json();
     console.log(data);
@@ -121,6 +132,7 @@ export const sendMapConfig = async (token: string, gameId: string, mapConfigurat
     });
 
     const data = await result.json();
+    console.log(data);
     return data;
 }
 

@@ -46,6 +46,23 @@ const HeaderText = styled(Text)`
     font-weight: bold;
 `;
 
+const getCellStyle = (cell: string) => {
+    switch (cell) {
+        case 'X':
+            return styles.hitCell;
+        case 'O':
+            return styles.missCell;
+        case 'D':
+            return styles.destroyedCell;
+        case 'P':
+            return styles.previewCell;
+        case 'S':
+            return styles.shipCell;
+        default:
+            return styles.defaultCell;
+    }
+};
+
 const Table: React.FC<ITable> = ({ state, onCellClick }) => {
     const headerColumns = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
 
@@ -72,7 +89,7 @@ const Table: React.FC<ITable> = ({ state, onCellClick }) => {
                                     onCellClick({ x: String.fromCharCode(65 + columnIndex), y: rowIndex + 1 });
                                 }
                             }}
-                            style={cell === 'S' ? styles.shipCell : styles.normalCell}
+                            style={getCellStyle(cell)}
                         >
                             <Text>{cell}</Text>
                         </Cell>
@@ -104,10 +121,25 @@ const styles = StyleSheet.create({
         height: 35,
         borderWidth: 1,
         borderColor: '#ccc',
-        backgroundColor: 'blue',  // fundal albastru pentru nave
+        backgroundColor: 'blue',  
         justifyContent: 'center',
         alignItems: 'center',
-    }
+    },
+    hitCell: {
+        backgroundColor: 'red',
+    },
+    missCell: {
+        backgroundColor: 'blue',
+    },
+    destroyedCell: {
+        backgroundColor: 'darkred',
+    },
+    previewCell: {
+        backgroundColor: 'lightgray',
+    },
+    defaultCell: {
+        backgroundColor: 'white',
+    },
 });
 
 export default Table;

@@ -42,11 +42,10 @@ export const LobbyScreen = () => {
     const [games, setGames] = React.useState<any[]>([]);
     const auth = useAuth();
 
-    const fetchGames = useCallback( async() => {
+    const fetchGames = useCallback(async () => {
         try {
             const gamesList = await listGames(token);
             setGames(gamesList.games);
-
         } catch (error) {
             console.error('Failed to fetch games:', error);
             Alert.alert('Error', 'Failed to load games.');

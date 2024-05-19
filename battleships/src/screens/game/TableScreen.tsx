@@ -43,6 +43,7 @@ const ButtonText = styled(Text)`
 
 const createEmptyTable = () => Array.from({length: 10}, () => Array(10).fill(''));
 
+
 const TableScreen = () => {
     const route = useRoute<any>();
     const auth = useAuth();
@@ -62,15 +63,15 @@ const TableScreen = () => {
 
     const [ships, setShips] = useState<any[]>([
         {shipId: 0, pozX: 'A', pozY: 1, length: 2, direction: 'VERTICAL'},
-        {shipId: 1, pozX: 'A', pozY: 1, length: 2, direction: 'VERTICAL'},
-        {shipId: 2, pozX: 'A', pozY: 1, length: 2, direction: 'VERTICAL'},
-        {shipId: 3, pozX: 'A', pozY: 1, length: 2, direction: 'VERTICAL'},
-        {shipId: 4, pozX: 'A', pozY: 1, length: 2, direction: 'VERTICAL'},
-        {shipId: 5, pozX: 'A', pozY: 1, length: 2, direction: 'VERTICAL'},
-        {shipId: 6, pozX: 'A', pozY: 1, length: 2, direction: 'VERTICAL'},
-        {shipId: 7, pozX: 'A', pozY: 1, length: 2, direction: 'VERTICAL'},
-        {shipId: 8, pozX: 'A', pozY: 1, length: 2, direction: 'VERTICAL'},
-        {shipId: 9, pozX: 'A', pozY: 1, length: 2, direction: 'VERTICAL'}
+        {shipId: 1, pozX: 'B', pozY: 1, length: 2, direction: 'VERTICAL'},
+        {shipId: 2, pozX: 'C', pozY: 1, length: 2, direction: 'VERTICAL'},
+        {shipId: 3, pozX: 'D', pozY: 1, length: 2, direction: 'VERTICAL'},
+        {shipId: 4, pozX: 'E', pozY: 1, length: 3, direction: 'VERTICAL'},
+        {shipId: 5, pozX: 'F', pozY: 1, length: 3, direction: 'VERTICAL'},
+        {shipId: 6, pozX: 'G', pozY: 1, length: 3, direction: 'VERTICAL'},
+        {shipId: 7, pozX: 'H', pozY: 1, length: 4, direction: 'VERTICAL'},
+        {shipId: 8, pozX: 'I', pozY: 1, length: 4, direction: 'VERTICAL'},
+        {shipId: 9, pozX: 'J', pozY: 1, length: 6, direction: 'VERTICAL'}
     ]);
 
     const [shipConfigurations, setShipConfigurations] = useState(ships);
@@ -100,6 +101,36 @@ const TableScreen = () => {
             });
         }
     }, [shipConfigurations, gameContext.game?.status]); 
+
+    useEffect(() => {
+        const fetchGameDetails = async () => {
+            await gameContext.getGameDetails(route.params.gameId);
+        };
+
+        const intervalId = setInterval(fetchGameDetails, 1000);
+
+        return () => clearInterval(intervalId); 
+    }, [route.params?.gameId]);
+
+    useEffect(() => {
+        if (gameContext.game) {
+            getPlayerConfig();
+            getOpponentConfig();
+        }
+    }, [gameContext.game]);
+
+    useEffect(() => {
+        if (gameContext.game?.playerToMoveId) {
+            console.log("Player to move:", gameContext.game.playerToMoveId);
+        }
+    }, [gameContext.game?.playerToMoveId]);
+
+    useEffect(() => {
+        if(gameContext.game?.status === 'FINISHED'){
+            Alert.alert("Game Finished", `The winner is ${getWinner()}`);
+        }
+    }, [gameContext.game?.status]);
+
 
     const handleJoinGame = async () => {
         if (!gameContext.game) {
@@ -135,11 +166,15 @@ const TableScreen = () => {
 
             if (move.playerId !== auth.id) {
                 if(move.result === false){
-                    newconfig[pozY][pozX] = 'M';
+                    newconfig[pozY][pozX] = 'O';
+                }
+                else {
+                    newconfig[pozY][pozX] = 'X';
                 }
             }
         });
-        setPlayerConfig(newconfig);
+
+        setPlayerConfig(markDestroyedShips(newconfig));
     }
 
     const getOpponentConfig = () => {
@@ -152,7 +187,8 @@ const TableScreen = () => {
                 newconfig[pozY][pozX] = move.result ? 'X' : 'O';
             }
         });
-        setOpponentConfig(newconfig);
+
+        setOpponentConfig(markDestroyedShips(newconfig));
     }
 
     
@@ -203,8 +239,6 @@ const TableScreen = () => {
         let isValid = true;
         const newPlayerConfig = createEmptyTable(); 
 
-        console.log("Ship configurations:", shipConfigurations);
-
         shipConfigurations.forEach(ship => {
             const startX = ship.pozX.charCodeAt(0) - 65;
             const startY = ship.pozY - 1;
@@ -232,7 +266,14 @@ const TableScreen = () => {
         if (isValid) {
             setPlayerConfig(newPlayerConfig); 
             if (gameContext.game?.id) {
-                sendMapConfig(auth.token, gameContext.game.id, newPlayerConfig)
+                const shipData = shipConfigurations.map(ship => ({
+                    x: ship.pozX,
+                    y: ship.pozY,
+                    size: ship.length,
+                    direction: ship.direction
+                }));
+
+                sendMapConfig(auth.token, gameContext.game.id, shipData)
                 .then(() => {
                     console.log("Ships Placed: Waiting for opponent to place ships.");
                     setIsWaitingForOpponent(true); 
@@ -275,9 +316,9 @@ const TableScreen = () => {
                 const pozY = move.y - 1;
 
                 if (move.playerId === auth.id) {
-                    newPlayerConfig[pozY][pozX] = move.result ? 'X' : 'M';
+                    newPlayerConfig[pozY][pozX] = move.result ? 'X' : 'O';
                 } else {
-                    newOpponentConfig[pozY][pozX] = move.result ? 'X' : 'M';
+                    newOpponentConfig[pozY][pozX] = move.result ? 'X' : 'O';
                 }
 
                 index++;
@@ -292,9 +333,16 @@ const TableScreen = () => {
     }
 
     const handleStrike = async (cell: ICell) => {
-        if (gameContext.game && gameContext.game.cuurentPlayerId === auth.id && gameContext.game.status === 'ACTIVE') {
-            const cellcontent = playerConfigReplay[cell.y - 1][cell.x.charCodeAt(0) - 65];
-            if(cellcontent === 'X' || cellcontent === 'O'){
+        console.log("Current Player ID: " + gameContext.game?.playerToMoveId);
+        console.log(gameContext.game?.id);
+        if(gameContext.game?.playerToMoveId !== auth.id){
+            Alert.alert("Not your turn", "Wait for your opponent to strike.");
+            return;
+        }
+        if (gameContext.game?.id && gameContext.game.playerToMoveId === auth.id && gameContext.game.status === 'ACTIVE') {
+            console.log("ACTIVE");
+            const cellcontent = opponentConfig[cell.y - 1][cell.x.charCodeAt(0) - 65];
+            if(cellcontent === 'X' || cellcontent === 'O' || cellcontent === 'D' || cellcontent === 'P'){
                 Alert.alert("Invalid Strike", "You cannot strike at a ship.");
                 return;
             }
@@ -310,8 +358,43 @@ const TableScreen = () => {
         }
     };
 
+    const markDestroyedShips = (config: string[][]) => {
+        const newConfig = config.map((row: string[]) => [...row]);
+        shipConfigurations.forEach(ship => {
+            const startX = ship.pozX.charCodeAt(0) - 65;
+            const startY = ship.pozY - 1;
+            let isDestroyed = true;
+    
+            for (let i = 0; i < ship.length; i++) {
+                const x = ship.direction === 'HORIZONTAL' ? startX + i : startX;
+                const y = ship.direction === 'VERTICAL' ? startY + i : startY;
+                if (newConfig[y][x] !== 'X') {
+                    isDestroyed = false;
+                    break;
+                }
+            }
+    
+            if (isDestroyed) {
+                for (let i = 0; i < ship.length; i++) {
+                    const x = ship.direction === 'HORIZONTAL' ? startX + i : startX;
+                    const y = ship.direction === 'VERTICAL' ? startY + i : startY;
+                    newConfig[y][x] = 'D'; 
+                }
+            }
+        });
+        return newConfig;
+    };
+    
+
     const isParticipant = (auth.id === gameContext.game?.player1Id || auth.id === gameContext.game?.player2Id);
-    const canConfigureShips = gameContext.game?.status === 'MAP_CONFIG' && isParticipant;
+    const canConfigureShips = gameContext.game?.status === 'MAP_CONFIG' && isParticipant && !isWaitingForOpponent && !shipsConfigured;
+
+    const getEmailofCurrentPlayer = () => {
+        if(gameContext.game?.playerToMoveId === gameContext.game?.player2Id){
+            return gameContext.game?.player2.email;
+        }
+        return gameContext.game?.player1.email;
+    }
 
     if(!gameContext.game){
         return (
@@ -365,36 +448,55 @@ const TableScreen = () => {
                                     </Button>
                                     <Text style={styles.header}>{gameContext.game.player1.email} vs {gameContext.game.player2?.email}</Text>
                                     <View style={styles.boardContainer}>
-                                        <Text style={styles.boardLabel}>{gameContext.game.player1.email}'s Board:</Text>
+                                        <Text style={styles.boardContainer}>{auth.id === gameContext.game.player1Id ? gameContext.game.player1?.email: gameContext.game.player2.email}'s Board</Text>
                                         <View style={styles.board}>
                                             <Table state={playerConfig} />
                                         </View>
                                     </View>
                                     <View style={styles.boardContainer}>
-                                        <Text style={styles.boardLabel}>{gameContext.game.player2?.email}'s Board:</Text>
+                                        <Text style={styles.boardLabel}>{auth.id === gameContext.game.player1Id ? gameContext.game.player2?.email : gameContext.game.player1.email}'s Board:</Text>
                                         <View style={styles.board}>
                                             <Table state={opponentConfig} />
                                         </View>
                                     </View>
                                 </>
                             )}
-                            {(gameContext.game.status === 'ACTIVE' || gameContext.game.status === 'MAP_CONFIG')&& auth.id !== gameContext.game.player1Id && auth.id !== gameContext.game.player2Id && (
+                            {(gameContext.game.status === 'MAP_CONFIG')&& auth.id !== gameContext.game.player1Id && auth.id !== gameContext.game.player2Id && (
                                 <>
                                 <Text style={styles.header}>{gameContext.game.player1.email} vs {gameContext.game.player2?.email}</Text>
                                 </>
                             )}
-                            {gameContext.game.status === 'ACTIVE' && (auth.id === gameContext.game.player1Id || auth.id === gameContext.game.player2Id) && (
+                            {(gameContext.game.status === 'ACTIVE') && auth.id !== gameContext.game.player1Id && auth.id !== gameContext.game.player2Id && (
                                 <>
-                                <Text style={styles.header}>{gameContext.game.player1.email} vs {gameContext.game.player2?.email}</Text>
-                                <View style={styles.boardContainer}>
-                                        <Text style={styles.boardLabel}>{gameContext.game.player1.email}'s Board:</Text>
+                                    <Text style={styles.header}>{gameContext.game.player1.email} vs {gameContext.game.player2?.email}</Text>
+                                    <View style={styles.boardContainer}>
+                                        <Text style={styles.boardContainer}>{auth.id === gameContext.game.player1Id ? gameContext.game.player1?.email: gameContext.game.player2.email}'s Board</Text>
                                         <View style={styles.board}>
                                             <Table state={playerConfig} />
                                         </View>
                                     </View>
                                     <View style={styles.boardContainer}>
-                                        <Text style={styles.boardLabel}>{gameContext.game.player2?.email}'s Board:</Text>
+                                        <Text style={styles.boardLabel}>{auth.id === gameContext.game.player1Id ? gameContext.game.player2?.email : gameContext.game.player1.email}'s Board:</Text>
                                         <View style={styles.board}>
+                                            <Table state={opponentConfig} />
+                                        </View>
+                                    </View>
+                                </>
+                            )}
+                            {gameContext.game.status === 'ACTIVE' && (auth.id === gameContext.game.player1Id || auth.id === gameContext.game.player2Id) && (
+                                <>
+                                <Text style={styles.header}>{gameContext.game.player1.email} vs {gameContext.game.player2?.email}</Text>
+                                <Text style={styles.header}>{getEmailofCurrentPlayer()} strikes now</Text>
+                                <View style={styles.boardContainer}>
+                                        <Text style={styles.boardLabel}>{auth.id === gameContext.game.player1Id ? gameContext.game.player1?.email : gameContext.game.player2?.email}'s Board:</Text>
+                                        <View style={styles.board}>
+                                            <Table state={playerConfig} />
+                                        </View>
+                                    </View>
+                                    <View style={styles.boardContainer}>
+                                        <Text style={styles.boardLabel}>{auth.id === gameContext.game.player1Id ? gameContext.game.player2?.email : gameContext.game.player1?.email}'s Board:</Text>
+                                        <Text style={styles.strikeText}>Strike here:</Text>
+                                        <View style={styles.opponentTable}>
                                             <Table state={opponentConfig} onCellClick={handleStrike}/>
                                         </View>
                                 </View>
@@ -470,6 +572,16 @@ const styles = StyleSheet.create({
         marginTop: 20,
         fontSize: 18,
         color: '#333',
+        textAlign: 'center',
+    },
+    opponentTable: {
+        borderColor: 'red',
+        borderWidth: 2,
+    },
+    strikeText: {
+        fontSize: 18,
+        color: 'red',
+        marginBottom: 20,
         textAlign: 'center',
     }
 });

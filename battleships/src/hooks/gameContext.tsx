@@ -39,7 +39,7 @@ interface Game {
     player2: User;
     player1Id: string;
     player2Id: string;
-    cuurentPlayerId: string;
+    playerToMoveId: string;
     moves: Move[];
     shipCoords?: Shipcoord[];
 }
